@@ -4,12 +4,24 @@ import Joke from "./Joke";
 import "./JokeList.css";
 
 class JokeList extends Component {
+  static defaultProps = {
+    numJokesToGet: 10
+  };
+
   constructor(props) { 
     super(props);
-    this.state = {jokes:[]};
+    this.state = { jokes:[] };
     this.getJokes = this.getJokes.bind(this);
     this.generateNewJokes = this.generateNewJokes.bind(this);
     this.vote = this.vote.bind(this);
+  };
+
+  componentDidMount() {
+    if (this.state.jokes.length < this.props.numJokesToGet) this.getJokes();
+  }
+
+  componentDidUpdate() {
+    if (this.state.jokes.length < this.props.numJokesToGet) this.getJokes();
   }
 
   getJokes() {
@@ -35,6 +47,9 @@ class JokeList extends Component {
     }
   }
 
+  if (jokes.length === 0) getJokes();
+  }, [jokes, numJokesToGet]);
+
   generateNewJokes() {
     this.setState({ jokes: [] });
   }
@@ -44,6 +59,9 @@ class JokeList extends Component {
       allJokes.map(j => (j.id === id ? { ...j, votes: j.votes + delta } : j))
     );
   }
+
+  if (jokes.length) {
+    let sortedJokes = [...jokes].sort((a, b) => b.votes - a.votes);
 
 }
 
