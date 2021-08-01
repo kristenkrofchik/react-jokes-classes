@@ -5,8 +5,40 @@ import "./JokeList.css";
 
 class JokeList extends Component {
   constructor(props) { 
-    super(props)
+    super(props);
+    this.state = {jokes:[]};
+    this.getJokes = this.getJokes.bind(this);
+    this.generateNewJokes = this.generateNewJokes.bind(this);
+    this.vote = this.vote.bind(this);
   }
+
+  getJokes() {
+    let j = [...jokes];
+    let seenJokes = new Set();
+    try {
+      while (j.length < numJokesToGet) {
+        let res = await axios.get("https://icanhazdadjoke.com", {
+          headers: { Accept: "application/json" }
+        });
+        let { status, ...jokeObj } = res.data;
+  
+        if (!seenJokes.has(jokeObj.id)) {
+          seenJokes.add(jokeObj.id);
+          j.push({ ...jokeObj, votes: 0 });
+        } else {
+          console.error("duplicate found!");
+        }
+      }
+      this.setState({ jokes: j})
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  generateNewJokes() {
+
+  }
+
 }
 
 function JokeList({ numJokesToGet = 10 }) {
