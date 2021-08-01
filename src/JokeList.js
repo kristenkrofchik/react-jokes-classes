@@ -1,7 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { Component } from "react";
 import axios from "axios";
 import Joke from "./Joke";
 import "./JokeList.css";
+
+class JokeList extends Component {
+  constructor(props) { 
+    super(props)
+  }
+}
 
 function JokeList({ numJokesToGet = 10 }) {
   const [jokes, setJokes] = useState([]);
