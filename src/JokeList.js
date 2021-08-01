@@ -29,14 +29,20 @@ class JokeList extends Component {
           console.error("duplicate found!");
         }
       }
-      this.setState({ jokes: j})
+      this.setState({ jokes: j});
     } catch (e) {
       console.log(e);
     }
   }
 
   generateNewJokes() {
+    this.setState({ jokes: [] });
+  }
 
+  vote(id, delta) {
+    this.setState(allJokes =>
+      allJokes.map(j => (j.id === id ? { ...j, votes: j.votes + delta } : j))
+    );
   }
 
 }
