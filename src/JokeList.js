@@ -13,6 +13,7 @@ class JokeList extends Component {
     this.state = { jokes:[] };
     this.getJokes = this.getJokes.bind(this);
     this.generateNewJokes = this.generateNewJokes.bind(this);
+    this.resetVotes = this.resetVotes.bind(this);
     this.vote = this.vote.bind(this);
   };
 
@@ -31,31 +32,35 @@ class JokeList extends Component {
         window.localStorage.getItem("jokeVotes") || "{}");
       let seenJokes = new Set(jokes.map(j => j.id));
       
-      while (j.length < this.props.numJokesToGet) {
+      while (jokes.length < this.props.numJokesToGet) {
         let res = await axios.get("https://icanhazdadjoke.com", {
           headers: { Accept: "application/json" }
         });
-        let { status, ...jokeObj } = res.data;
+        let { status, ...joke } = res.data;
   
-        if (!seenJokes.has(jokeObj.id)) {
-          seenJokes.add(jokeObj.id);
-          jokeVotes[jokeObj.id] = jokeVotes[jokeObj.id] || 1;
-          j.push({ ...jokeObj, votes: 0 });
+        if (!seenJokes.has(joke.id)) {
+          seenJokes.add(joke.id);
+          jokeVotes[joke.id] = jokeVotes[joke.id] || 1;
+          jokes.push({ ...joke, votes: jokeVotes[joke.id] });
         } else {
-          console.error("duplicate found!");
+          console.error("Duplicate Found!");
         }
       }
-      this.setState({ jokes: j});
+      this.setState({ jokes });
     } catch (e) {
       console.log(e);
     }
   }
 
-  if (jokes.length === 0) getJokes();
-  }, [jokes, numJokesToGet]);
-
   generateNewJokes() {
     this.setState({ jokes: [] });
+  }
+
+  resetVotes() {
+    window.localStorage.setItem("jokeVotes", "{}");
+    this.setState(st => ({
+      jokes: st.jokes.map(joke => ({ ...joke, votes: 0 }))
+    }));
   }
 
   vote(id, delta) {
@@ -69,72 +74,7 @@ class JokeList extends Component {
 
 }
 
-function JokeList({ numJokesToGet = 10 }) {
-  const [jokes, setJokes] = useState([]);
-
-  /* get jokes if there are no jokes */
-
-  useEffect(function() {
-    async function getJokes() {
-      let j = [...jokes];
-      let seenJokes = new Set();
-      try {
-        while (j.length < numJokesToGet) {
-          let res = await axios.get("https://icanhazdadjoke.com", {
-            headers: { Accept: "application/json" }
-          });
-          let { status, ...jokeObj } = res.data;
-  
-          if (!seenJokes.has(jokeObj.id)) {
-            seenJokes.add(jokeObj.id);
-            j.push({ ...jokeObj, votes: 0 });
-          } else {
-            console.error("duplicate found!");
-          }
-        }
-        setJokes(j);
-      } catch (e) {
-        console.log(e);
-      }
-    }
-
-    if (jokes.length === 0) getJokes();
-  }, [jokes, numJokesToGet]);
-
-  /* empty joke list and then call getJokes */
-
-  function generateNewJokes() {
-    setJokes([]);
-  }
-
-  /* change vote for this id by delta (+1 or -1) */
-
-  function vote(id, delta) {
-    setJokes(allJokes =>
-      allJokes.map(j => (j.id === id ? { ...j, votes: j.votes + delta } : j))
-    );
-  }
-
-  /* render: either loading spinner or list of sorted jokes. */
-
-  if (jokes.length) {
-    let sortedJokes = [...jokes].sort((a, b) => b.votes - a.votes);
-  
-    return (
-      <div className="JokeList">
-        <button className="JokeList-getmore" onClick={generateNewJokes}>
-          Get New Jokes
-        </button>
-  
-        {sortedJokes.map(j => (
-          <Joke text={j.joke} key={j.id} id={j.id} votes={j.votes} vote={vote} />
-        ))}
-      </div>
-    );
-  }
-
-  return null;
-
 }
+
 
 export default JokeList;
