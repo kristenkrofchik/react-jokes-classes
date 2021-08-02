@@ -24,11 +24,14 @@ class JokeList extends Component {
     if (this.state.jokes.length < this.props.numJokesToGet) this.getJokes();
   }
 
-  getJokes() {
-    let j = [...jokes];
-    let seenJokes = new Set();
+  async getJokes() {
     try {
-      while (j.length < numJokesToGet) {
+      let jokes = this.state.jokes;
+      let jokeVotes = JSON.parse(
+        window.localStorage.getItem("jokeVotes") || "{}");
+      let seenJokes = new Set(jokes.map(j => j.id));
+      
+      while (j.length < this.props.numJokesToGet) {
         let res = await axios.get("https://icanhazdadjoke.com", {
           headers: { Accept: "application/json" }
         });
@@ -36,6 +39,7 @@ class JokeList extends Component {
   
         if (!seenJokes.has(jokeObj.id)) {
           seenJokes.add(jokeObj.id);
+          jokeVotes[jokeObj.id] = jokeVotes[jokeObj.id] || 1;
           j.push({ ...jokeObj, votes: 0 });
         } else {
           console.error("duplicate found!");
