@@ -64,9 +64,14 @@ class JokeList extends Component {
   }
 
   vote(id, delta) {
-    this.setState(allJokes =>
-      allJokes.map(j => (j.id === id ? { ...j, votes: j.votes + delta } : j))
-    );
+    let jokeVotes = JSON.parse(window.localStorage.getItem("jokeVotes"));
+    jokeVotes[id] = (jokeVotes[id] || 0) + delta;
+    window.localStorage.setItem("jokeVotes", JSON.stringify(jokeVotes));
+    this.setState(st => ({
+      jokes: st.jokes.map(j =>
+        j.id === id ? {...j, votes: })
+      
+    });
   }
 
   if (jokes.length) {
