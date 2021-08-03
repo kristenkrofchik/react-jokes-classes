@@ -11,9 +11,9 @@ class JokeList extends Component {
   constructor(props) { 
     super(props);
     this.state = { jokes:[] };
-    this.getJokes = this.getJokes.bind(this);
     this.generateNewJokes = this.generateNewJokes.bind(this);
     this.resetVotes = this.resetVotes.bind(this);
+    this.toggleLock = this.toggleLock.bind(this);
     this.vote = this.vote.bind(this);
   };
 
@@ -40,20 +40,22 @@ class JokeList extends Component {
   
         if (!seenJokes.has(joke.id)) {
           seenJokes.add(joke.id);
-          jokeVotes[joke.id] = jokeVotes[joke.id] || 1;
+          jokeVotes[joke.id] = jokeVotes[joke.id] || 0;
           jokes.push({ ...joke, votes: jokeVotes[joke.id] });
         } else {
           console.error("Duplicate Found!");
         }
       }
+
       this.setState({ jokes });
+      window.localStorage.setItem("jokeVotes", JSON.stringify(jokeVotes));
     } catch (e) {
       console.log(e);
     }
   }
 
   generateNewJokes() {
-    this.setState({ jokes: [] });
+    this.setState(st => ({ jokes: st.jokes.filter(j => j.locked)}));
   }
 
   resetVotes() {
@@ -69,15 +71,54 @@ class JokeList extends Component {
     window.localStorage.setItem("jokeVotes", JSON.stringify(jokeVotes));
     this.setState(st => ({
       jokes: st.jokes.map(j =>
-        j.id === id ? {...j, votes: })
-      
-    });
+        j.id === id ? {...j, votes: j.votes + delta} : j)
+      }));
   }
 
-  if (jokes.length) {
-    let sortedJokes = [...jokes].sort((a, b) => b.votes - a.votes);
+  toggleLock(id) {
+    this.setState(st => ({
+      jokes: st.jokes.map(j => (j.id === id ? { ...j, locked: !j.locked } : j))
+    }));
+  }
 
-}
+  render() {
+    let sortedJokes = [...this.state.jokes].sort((a, b) => b.votes - a.votes);
+    let allLocked =
+      sortedJokes.filter(j => j.locked).length === this.props.numJokesToGet;
+
+      return (
+        <div className="JokeList">
+          <button
+            className="JokeList-getmore"
+            onClick={this.generateNewJokes}
+            disabled={allLocked}
+          >
+            Get New Jokes
+          </button>
+          <button className="JokeList-getmore" onClick={this.resetVotes}>
+            Reset Vote Counts
+          </button>
+  
+          {sortedJokes.map(j => (
+            <Joke
+              text={j.joke}
+              key={j.id}
+              id={j.id}
+              votes={j.votes}
+              vote={this.vote}
+              locked={j.locked}
+              toggleLock={this.toggleLock}
+            />
+          ))}
+  
+          {sortedJokes.length < this.props.numJokesToGet ? (
+            <div className="loading">
+              <i className="fas fa-4x fa-spinner fa-spin" />
+            </div>
+          ) : null}
+        </div>
+      );
+  }
 
 }
 
